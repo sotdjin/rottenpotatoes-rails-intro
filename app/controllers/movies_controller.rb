@@ -11,15 +11,28 @@ class MoviesController < ApplicationController
   end
 
   def index
-    if params[:sort_by].nil?
+    @all_ratings = Movie.all_ratings
+    @selected_ratings = @all_ratings if @selected_ratings.nil?
+    if params[:sort_by].nil? and params[:ratings].nil?
       @movies = Movie.all
     else
       @sort_by = params[:sort_by]
-      begin
-        @movies = Movie.order("#{@sort_by} ASC").all
-      rescue ActiveRecord::StatementInvalid
-        flash[:warning] = "Movies cannot be sorted by this order"
-        @movies = Movie.all
+      @ratings = params[:ratings]
+      if params[:ratings].nil?
+        ratings = Movie.all_ratings
+      else
+        ratings = @ratings.keys
+      end
+      @selected_ratings = ratings
+      if @sort_by.nil?
+        @movies = Movie.where(rating: params[:ratings].keys)
+      else
+        begin
+          @movies = Movie.order("#{@sort_by} ASC").where(rating: params[:ratings].keys)
+        rescue ActiveRecord::StatementInvalid
+          flash[:warning] = "Movies cannot be sorted by this order"
+          @movies = Movie.where(rating: params[:ratings].keys)
+        end
       end
     end
   end
@@ -29,7 +42,7 @@ class MoviesController < ApplicationController
   end
 
   def create
-    @movie = Movie.create!(movie_params)
+    @movie = Movie.create!(params[:movie])
     flash[:notice] = "#{@movie.title} was successfully created."
     redirect_to movies_path
   end
@@ -40,7 +53,7 @@ class MoviesController < ApplicationController
 
   def update
     @movie = Movie.find params[:id]
-    @movie.update_attributes!(movie_params)
+    @movie.update_attributes!(params[:movie])
     flash[:notice] = "#{@movie.title} was successfully updated."
     redirect_to movie_path(@movie)
   end
