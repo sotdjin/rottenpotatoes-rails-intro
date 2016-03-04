@@ -5,9 +5,8 @@ class MoviesController < ApplicationController
   end
 
   def show
-    id = params[:id] # retrieve movie ID from URI route
-    @movie = Movie.find(id) # look up movie by unique ID
-    # will render app/views/movies/show.<extension> by default
+    id = params[:id]
+    @movie = Movie.find(id)
   end
   
   def index
@@ -36,7 +35,7 @@ class MoviesController < ApplicationController
       begin
         @movies = Movie.order("#{@sort_by} ASC").where(rating: ratings)
       rescue ActiveRecord::StatementInvalid
-        flash[:warning] = "Movies cannot be sorted by this order"
+        flash[:warning] = "Something Broke! movies_controller.rb"
         @movies = Movie.where(rating: ratings)
       end
     end
@@ -69,5 +68,5 @@ class MoviesController < ApplicationController
     flash[:notice] = "Movie '#{@movie.title}' deleted."
     redirect_to movies_path
   end
-
+  
 end
